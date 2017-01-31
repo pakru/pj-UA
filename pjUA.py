@@ -110,14 +110,14 @@ class SubscriberUA(object):
             print('Some error')
             #pj.perror(THIS_FILE, "Error transferring call ", status)
 
-    def ctr_request(self,dstURI):
+    def ctr_request(self,dstURI,currentCall):
         print(str(self.uaAccountInfo.uri)+': making my ugly transfering...')      
         self.hdrs = []
         self.hdrs.append(('Refer-To','<sip:'+ dstURI +'>'))
         self.hdrs.append(('Referred-By',str(self.uaAccountInfo.uri)))
         self.hdrs.append(('Event','refer'))
         #self.accCallInstance.uaCurrentCall.transfer(dest_uri='sip:1510@192.168.118.38:5092;user=phone',hdr_list=hdrs)
-        self.uaCurrentCall.send_request(method='REFER', hdr_list=self.hdrs)
+        currentCall.send_request(method='REFER', hdr_list=self.hdrs)
         #print('Hangup')
         #self.uaCurrentCall.hangup(code=200, reason='Release')
 
