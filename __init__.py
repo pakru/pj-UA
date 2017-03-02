@@ -2,8 +2,9 @@ import sys
 import pjsua as pj
 import time
 import threading
-import os
+#import os
 import atexit
+import config
 
 print('Creating lib instance...')
 lib = pj.Lib()
@@ -14,8 +15,8 @@ def log_cb(level, str, len):
 def pjLibDestroy():
     global lib
     print('Destroying lib...')
-    lib.hangup_all
-    lib.destroy
+    lib.hangup_all()
+    lib.destroy()
     lib = None
     print('Destroyed')
 
@@ -32,7 +33,8 @@ pjUAconfig = pj.UAConfig()
 pjUAconfig.max_calls = 20
 pjUAconfig.user_agent = 'Yealink SIP-T29G 46.80.0.125'
 #pjUAconfig.user_agent = 'Tadiran SIP-T328P 2.72.19.4 00:15:65:50:81:1b'
-listenAddr = str(os.environ.get('TC_EXT_TRUNK_IP'))
+#listenAddr = str(os.environ.get('TC_EXT_TRUNK_IP'))
+listenAddr = config.testConfigJson['SIPuaListenAddr']
 #listenAddr = '192.168.118.12'
            
 print('Init lib pj...')
