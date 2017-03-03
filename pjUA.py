@@ -1,4 +1,4 @@
-import sys
+import sys, logging
 import pjsua as pj
 import _pjsua as _pj
 import time
@@ -14,11 +14,12 @@ def log_cb(level, str, len):
 class SubscriberUA(object):
     def __init__(self,domain,username,passwd,sipProxy,displayName,uaIP,regExpiresTimeout=200,req100rel=False,autoAnswer=True):
         global lib
-        
+        logging.info('Creating of pjsip subcriber UA: ' + username + '@'+domain)
         self.uaCurrentCallInfo = pj.CallInfo
         self.uaCurrentCall = pj.Call
         self.uaAccountInfo = pj.AccountInfo
         self.uaAutoAnswerBehavior=autoAnswer
+        self.failureFlag = False
 
         self.AccConfig = pj.AccountConfig(domain=domain, username=username, password=passwd, display=displayName, proxy='sip:'+sipProxy)
         self.AccConfig.reg_timeout = regExpiresTimeout
@@ -40,10 +41,18 @@ class SubscriberUA(object):
         #print('Registration status=', self.acc.info().reg_status, "(" + self.acc.info().reg_reason + ")")
         print(str(self.uaAccountInfo.uri)+': Registration status=', self.uaAccountInfo.reg_status, "(" + self.uaAccountInfo.reg_reason + ")")
 
-        self.playerID=lib.create_player(filename='./pjsounds/demo-instruct-low.wav', loop=True)
+        self.soundsPath = sys.path[-1] + '/pjSIP_py/pjsounds/'
+        #print('Sounds path: ' + self.soundsPath)
+        self.playerID=lib.create_player(filename=self.soundsPath + 'demo-instruct-low.wav', loop=True)
         self.playerSlot=lib.player_get_slot(self.playerID)
         #self.playerSlot=0
-    
+
+    def resetFailure(self):
+        self.failureFlag = False
+
+    def setFailure(self):
+        self.failureFlag = True
+
     def log_cb(level, str, len):
         print(str, end='\n')
 
@@ -52,7 +61,9 @@ class SubscriberUA(object):
 
     def sendInbandDTMF(self, dtmfDigit, duration=0.2):
         #self.uaCurrentCall.dial_dtmf(digits=str(dtmfDigit))
-        self.dtmfSoundsPath = './pjsounds/dtmf/long/'
+        #self.dtmfSoundsPath = './pjsounds/dtmf/long/'
+        logging.info(str(self.uaAccountInfo.uri)+': Send inband DTMF: '+ dtmfDigit)
+        self.dtmfSoundsPath = sys.path[-1] + '/pjSIP_py/pjsounds/dtmf/long/'
         if dtmfDigit in '1':
             self.dtmfSoundfilename = self.dtmfSoundsPath + '1.wav'
         elif dtmfDigit in '2':
@@ -95,8 +106,9 @@ class SubscriberUA(object):
         lib.player_destroy(self.dtmfPl)              
 
     def makeCall(self,phoneURI):
-        dstURI = 'sip:' + phoneURI
-        self.acc.make_call(dst_uri=dstURI,cb=MyCallCallback(accCallInstance=self))
+        self.dstURI = 'sip:' + phoneURI
+        logging.info(str(self.uaAccountInfo.uri) +': calling to: '+ self.dstURI)
+        self.acc.make_call(dst_uri=self.dstURI,cb=MyCallCallback(accCallInstance=self))
 
     def getCurrentUAState(self):
         pass
@@ -111,7 +123,8 @@ class SubscriberUA(object):
             #pj.perror(THIS_FILE, "Error transferring call ", status)
 
     def ctr_request(self,dstURI,currentCall):
-        print(str(self.uaAccountInfo.uri)+': making my ugly transfering...')      
+        print(str(self.uaAccountInfo.uri)+': making my ugly transfering...')
+        logging.info(str(self.uaAccountInfo.uri)+': making unattend transfer to ' + dstURI)
         self.hdrs = []
         self.hdrs.append(('Refer-To','<sip:'+ dstURI +'>'))
         self.hdrs.append(('Referred-By',str(self.uaAccountInfo.uri)))
@@ -144,6 +157,9 @@ class MyCallCallback(pj.CallCallback):
         print('(' + self.call.info().last_reason + ')', end = '; ')
         print('role =', self.call.info().role, end='; ')
         print('from =', self.call.info().remote_uri)
+        logging.info(str(self.accCallInstance.uaAccountInfo.uri) + ': ' + 'Call is ' + self.call.info().state_text + '; ' +
+                     'last code =' + str(self.call.info().last_code) + '; ' + '(' + str(self.call.info().last_reason) + '); ' +
+                     'from =' + self.call.info().remote_uri)
         
     def on_dtmf_digit(self, digits):
         #self.call.dial_dtmf(digits=str(digits))
@@ -207,7 +223,6 @@ class MyAccountCallback(pj.AccountCallback):
 
     def on_reg_state(self):
         self.accInstance.uaAccountInfo = self.account.info()
-        
         if self.sem:
             if self.account.info().reg_status >= 200:
                 self.sem.release()
@@ -216,6 +231,7 @@ class MyAccountCallback(pj.AccountCallback):
         #global SubscriberUA.uaCurrentCallInfo
         print(str(self.accInstance.uaAccountInfo.uri), end=': ')
         print('We`ve got incoming call from: '+ str(call.info().remote_uri))
+        logging.info(str(self.accInstance.uaAccountInfo.uri) + ': recieved incoming call from: ' + str(call.info().remote_uri))
         #SubscriberUA.uaCurrentCallInfo = call.info()
         self.myCallCb = MyCallCallback(accCallInstance=self.accInstance)
         call.set_callback(self.myCallCb)
