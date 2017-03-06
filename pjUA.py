@@ -20,6 +20,7 @@ class SubscriberUA(object):
         self.uaAccountInfo = pj.AccountInfo
         self.uaAutoAnswerBehavior=autoAnswer
         self.failureFlag = False
+        self.expectedState = None
 
         self.AccConfig = pj.AccountConfig(domain=domain, username=username, password=passwd, display=displayName, proxy='sip:'+sipProxy)
         self.AccConfig.reg_timeout = regExpiresTimeout
@@ -130,7 +131,13 @@ class SubscriberUA(object):
         self.hdrs.append(('Referred-By',str(self.uaAccountInfo.uri)))
         self.hdrs.append(('Event','refer'))
         #self.accCallInstance.uaCurrentCall.transfer(dest_uri='sip:1510@192.168.118.38:5092;user=phone',hdr_list=hdrs)
-        currentCall.send_request(method='REFER', hdr_list=self.hdrs)
+        try:
+            currentCall.send_request(method='REFER', hdr_list=self.hdrs)
+        except Exception as e:
+            print('Failed to transfer due to exception: ' + str(e))
+            logging.error('Failed to transfer due to exception: ' + str(e))
+            return False
+        return True
         #print('Hangup')
         #self.uaCurrentCall.hangup(code=200, reason='Release')
 
