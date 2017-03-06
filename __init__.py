@@ -1,10 +1,6 @@
-import sys
+import sys, time, threading, atexit, config
 import pjsua as pj
-import time
-import threading
 #import os
-import atexit
-import config
 
 print('Creating lib instance...')
 lib = pj.Lib()
