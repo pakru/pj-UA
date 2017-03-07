@@ -30,7 +30,7 @@ pjUAconfig.max_calls = 20
 pjUAconfig.user_agent = 'Yealink SIP-T29G 46.80.0.125'
 #pjUAconfig.user_agent = 'Tadiran SIP-T328P 2.72.19.4 00:15:65:50:81:1b'
 #listenAddr = str(os.environ.get('TC_EXT_TRUNK_IP'))
-listenAddr = config.testConfigJson['SIPuaListenAddr']
+listenAddr = config.testConfigJson['SystemVars'][0]['%%IP%%']
 #listenAddr = '192.168.118.12'
            
 print('Init lib pj...')
