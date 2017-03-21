@@ -41,7 +41,7 @@ class SubscriberUA(object):
         #print('\n')
         #print('Registration status=', self.acc.info().reg_status, "(" + self.acc.info().reg_reason + ")")
         print(str(self.uaAccountInfo.uri)+': Registration status=', self.uaAccountInfo.reg_status, "(" + self.uaAccountInfo.reg_reason + ")")
-        logging.info(str(self.uaAccountInfo.uri)+': Registration status=', self.uaAccountInfo.reg_status, "(" + self.uaAccountInfo.reg_reason + ")")
+        logging.info(str(self.uaAccountInfo.uri)+': Registration status=', str(self.uaAccountInfo.reg_status), "(" + str(self.uaAccountInfo.reg_reason) + ")")
 
         self.soundsPath = sys.path[-1] + '/pjSIP_py/pjsounds/'
         #print('Sounds path: ' + self.soundsPath)
