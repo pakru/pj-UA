@@ -11,10 +11,13 @@ def log_cb(level, str, len):
 def pjLibDestroy():
     global lib
     print('Destroying lib...')
-    lib.hangup_all()
-    lib.destroy()
-    lib = None
-    print('Destroyed')
+    if lib is not None:
+        lib.hangup_all()
+        lib.destroy()
+        lib = None
+        print('Destroyed')
+    else:
+        print('Already destroyed')
 
 atexit.register(pjLibDestroy)
 
